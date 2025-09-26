@@ -25,6 +25,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# (Optional) build banner so you can confirm the deployed file updated
+import time
+st.caption(f"🔧 Build {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
 # ---------- Background image helper (with color tints + filters) ----------
 def set_background(
     image_path: str,
@@ -43,7 +47,7 @@ def set_background(
       2) blue tint layer
       3) the image
     then applies CSS filters and a top readability overlay.
-    Also defines .nowrap (no wrap) and .center (centered) helpers.
+    Also defines layout helpers: .app-title, .nowrap, .center, .hero, .tagline.
     """
     if not os.path.exists(image_path):
         st.warning(f"Background image not found at {image_path}")
@@ -91,14 +95,18 @@ def set_background(
             backdrop-filter: saturate(1.2);
         }}
 
-        /* One-line title */
+        /* Title single-line */
         .app-title {{
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 .5rem 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;
         }}
 
         /* Utilities */
         .nowrap {{ white-space: nowrap; }}
         .center {{ text-align: center; }}
+
+        /* Centered stack for title + tagline */
+        .hero {{ display:flex; flex-direction:column; align-items:center; gap:.15rem; }}
+        .tagline {{ white-space:nowrap; text-align:center; margin:.25rem 0 .75rem 0; font-size:0.95rem; }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -116,15 +124,17 @@ set_background(
     blend_mode="overlay",
 )
 
-# Title
-st.markdown("""<h1 class="app-title">V2500 EGTm Estimator</h1>""", unsafe_allow_html=True)
-
-# Single-line instruction (centered, no wrapping)
+# ---------- Title + centered single-line instruction ----------
 st.markdown(
-    '<p class="nowrap center" style="margin: 0.25rem 0 0.75rem 0;">'
-    'Enter FANSTD, LPCSTD, HPCSTD, HPTSTD, LPTSTD (positive, 1 decimal). '
-    'Click <strong>Estimate EGTm</strong> to predict using your trained Keras model.'
-    '</p>',
+    """
+    <div class="hero">
+      <h1 class="app-title">V2500 EGTm Estimator</h1>
+      <p class="tagline">
+        Enter FANSTD, LPCSTD, HPCSTD, HPTSTD, LPTSTD (positive, 1 decimal).
+        Click <strong>Estimate EGTm</strong> to predict using your trained Keras model.
+      </p>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
