@@ -233,4 +233,29 @@ if submitted:
             raise RuntimeError("Keras model not loaded. Place model_1.keras beside app.py.")
 
         # Enforce positivity & 1 decimal
-        FANSTD_c_
+        FANSTD_c = _clean_pos_1dp(FANSTD)
+        LPCSTD_c = _clean_pos_1dp(LPCSTD)
+        HPCSTD_c = _clean_pos_1dp(HPCSTD)
+        HPTSTD_c = _clean_pos_1dp(HPTSTD)
+        LPTSTD_c = _clean_pos_1dp(LPTSTD)
+
+        row = pd.DataFrame(
+            [{
+                "FANSTD": FANSTD_c,
+                "LPCSTD": LPCSTD_c,
+                "HPCSTD": HPCSTD_c,
+                "HPTSTD": HPTSTD_c,
+                "LPTSTD": LPTSTD_c,
+            }],
+            columns=FEATURES
+        )
+
+        X1 = prep_for_model(row)
+        pred_float = float(model.predict(X1, verbose=0).ravel()[0])
+        pred_int = int(np.rint(pred_float))  # integer EGTm
+        st.success(f"Estimated EGTm: **{pred_int:,d}**")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
+
+# ---------- Footer ----------
+st.caption(f"Runtime: Python {sys.version.split()[0]} | TensorFlow: {getattr(tf, '__version__', 'n/a')} | File: {__file__}")
