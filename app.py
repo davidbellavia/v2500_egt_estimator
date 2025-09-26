@@ -1,4 +1,4 @@
-# app.py — V2500 EGTm Estimator (Keras + MinMaxScaler preprocessor) with blue/red-tinted background
+# app.py — V2500 EGTm Estimator (Keras + MinMaxScaler preprocessor) with tinted background
 import os
 import sys
 import base64
@@ -30,11 +30,11 @@ def set_background(
     image_path: str,
     overlay_rgba: str = "rgba(255,255,255,0.66)",  # readability layer on top
     *,
-    contrast: float = 1.70,
-    brightness: float = 0.80,
+    contrast: float = 1.35,
+    brightness: float = 0.90,
     saturate: float = 1.18,
     red_boost: float = 0.20,    # 0.00–0.40 typical
-    blue_boost: float = 0.30,   # 0.00–0.40 typical
+    blue_boost: float = 0.25,   # 0.00–0.40 typical
     blend_mode: str = "overlay" # try: "overlay", "soft-light", "multiply", "screen"
 ):
     """
@@ -43,6 +43,7 @@ def set_background(
       2) blue tint layer
       3) the image
     then applies CSS filters and a top readability overlay.
+    Also defines a reusable .nowrap class for single-line text.
     """
     if not os.path.exists(image_path):
         st.warning(f"Background image not found at {image_path}")
@@ -94,6 +95,9 @@ def set_background(
         .app-title {{
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 .5rem 0;
         }}
+
+        /* Utility: single-line paragraph */
+        .nowrap {{ white-space: nowrap; }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -113,9 +117,14 @@ set_background(
 
 # Title
 st.markdown("""<h1 class="app-title">V2500 EGTm Estimator</h1>""", unsafe_allow_html=True)
-st.caption(
-    "Enter FANSTD, LPCSTD, HPCSTD, HPTSTD, LPTSTD (positive, 1 decimal). "
-    "Click **Estimate EGTm** to predict using your trained Keras model."
+
+# Single-line instruction (no wrapping)
+st.markdown(
+    '<p class="nowrap" style="margin: 0.25rem 0 0.75rem 0;">'
+    'Enter FANSTD, LPCSTD, HPCSTD, HPTSTD, LPTSTD (positive, 1 decimal). '
+    'Click <strong>Estimate EGTm</strong> to predict using your trained Keras model.'
+    '</p>',
+    unsafe_allow_html=True,
 )
 
 FEATURES = ["FANSTD", "LPCSTD", "HPCSTD", "HPTSTD", "LPTSTD"]
@@ -125,13 +134,13 @@ FEATURES = ["FANSTD", "LPCSTD", "HPCSTD", "HPTSTD", "LPTSTD"]
 def load_artifacts():
     """
     Loads:
-      - ColumnTransformer/Scaler from ct.joblib or preprocessor.joblib (fitted on training data)
+      - ColumnTransformer/Scaler from preprocessor.joblib (or ct.joblib) fitted on training data
       - Keras model from model_1.keras
     Returns (preprocessor, model)
     """
     # Load preprocessor
     pre = None
-    pre_candidates = ["ct.joblib", "preprocessor.joblib"]
+    pre_candidates = ["preprocessor.joblib", "ct.joblib"]
     load_errs = []
     if joblib is not None:
         for fname in pre_candidates:
@@ -142,7 +151,7 @@ def load_artifacts():
                 except Exception as e:
                     load_errs.append(f"{fname}: {e}")
     else:
-        load_errs.append("joblib not available; cannot load ct.joblib/preprocessor.joblib")
+        load_errs.append("joblib not available; cannot load preprocessor.joblib/ct.joblib")
 
     # Load keras model
     mdl = None
@@ -161,11 +170,11 @@ def load_artifacts():
     if pre is None:
         st.warning(
             "Preprocessor (MinMaxScaler via ColumnTransformer) not found. "
-            "Please save your fitted transformer (ct) as **ct.joblib** (or preprocessor.joblib) "
+            "Please save your fitted transformer as **preprocessor.joblib** (or ct.joblib) "
             "in the app folder. Example after training:\n\n"
             "```python\n"
             "import joblib\n"
-            "joblib.dump(ct, 'ct.joblib')\n"
+            "joblib.dump(ct, 'preprocessor.joblib')\n"
             "model_1.save('model_1.keras')\n"
             "```",
         )
@@ -183,7 +192,7 @@ def prep_for_model(df: pd.DataFrame) -> np.ndarray:
     Converts to dense float32 if needed.
     """
     if pre is None:
-        raise RuntimeError("Preprocessor not loaded. Provide ct.joblib/preprocessor.joblib.")
+        raise RuntimeError("Preprocessor not loaded. Provide preprocessor.joblib/ct.joblib.")
     X = pre.transform(df)
     if hasattr(X, "toarray"):  # scipy sparse -> dense
         X = X.toarray()
