@@ -43,7 +43,7 @@ def set_background(
       2) blue tint layer
       3) the image
     then applies CSS filters and a top readability overlay.
-    Also defines a reusable .nowrap class for single-line text.
+    Also defines .nowrap (no wrap) and .center (centered) helpers.
     """
     if not os.path.exists(image_path):
         st.warning(f"Background image not found at {image_path}")
@@ -96,8 +96,9 @@ def set_background(
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 .5rem 0;
         }}
 
-        /* Utility: single-line paragraph */
+        /* Utilities */
         .nowrap {{ white-space: nowrap; }}
+        .center {{ text-align: center; }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -118,9 +119,9 @@ set_background(
 # Title
 st.markdown("""<h1 class="app-title">V2500 EGTm Estimator</h1>""", unsafe_allow_html=True)
 
-# Single-line instruction (no wrapping)
+# Single-line instruction (centered, no wrapping)
 st.markdown(
-    '<p class="nowrap" style="margin: 0.25rem 0 0.75rem 0;">'
+    '<p class="nowrap center" style="margin: 0.25rem 0 0.75rem 0;">'
     'Enter FANSTD, LPCSTD, HPCSTD, HPTSTD, LPTSTD (positive, 1 decimal). '
     'Click <strong>Estimate EGTm</strong> to predict using your trained Keras model.'
     '</p>',
@@ -232,29 +233,4 @@ if submitted:
             raise RuntimeError("Keras model not loaded. Place model_1.keras beside app.py.")
 
         # Enforce positivity & 1 decimal
-        FANSTD_c = _clean_pos_1dp(FANSTD)
-        LPCSTD_c = _clean_pos_1dp(LPCSTD)
-        HPCSTD_c = _clean_pos_1dp(HPCSTD)
-        HPTSTD_c = _clean_pos_1dp(HPTSTD)
-        LPTSTD_c = _clean_pos_1dp(LPTSTD)
-
-        row = pd.DataFrame(
-            [{
-                "FANSTD": FANSTD_c,
-                "LPCSTD": LPCSTD_c,
-                "HPCSTD": HPCSTD_c,
-                "HPTSTD": HPTSTD_c,
-                "LPTSTD": LPTSTD_c,
-            }],
-            columns=FEATURES
-        )
-
-        X1 = prep_for_model(row)
-        pred_float = float(model.predict(X1, verbose=0).ravel()[0])
-        pred_int = int(np.rint(pred_float))  # integer EGTm
-        st.success(f"Estimated EGTm: **{pred_int:,d}**")
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
-
-# ---------- Footer ----------
-st.caption(f"Runtime: Python {sys.version.split()[0]} | TensorFlow: {getattr(tf, '__version__', 'n/a')} | File: {__file__}")
+        FANSTD_c_
