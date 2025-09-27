@@ -115,7 +115,8 @@ def set_background(
 # Set the background (expects assets/united_787.png). Adjust params to taste.
 set_background(
     #"assets/united_787.png",
-    "assets/A320.png",
+    #"assets/A320.png",
+    "assets/v2500.png",
     overlay_rgba="rgba(255,255,255,0.66)",
     contrast=1.35,
     brightness=0.90,
